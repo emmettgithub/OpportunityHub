@@ -1,35 +1,30 @@
-# Use official Python slim image
+# Base image
 FROM python:3.13-slim
 
-# -------------------- Install dependencies --------------------
+# Install Chromium and other necessary tools
 RUN apt-get update && apt-get install -y \
-    wget \
-    unzip \
-    curl \
-    gnupg \
-    software-properties-common \
     chromium \
     chromium-driver \
-    && apt-get clean \
+    wget \
+    curl \
+    unzip \
     && rm -rf /var/lib/apt/lists/*
 
-# -------------------- Set working directory --------------------
+# Set environment variable for headless Chrome
+ENV CHROME_BIN=/usr/bin/chromium
+
+# Set working directory
 WORKDIR /app
 
-# -------------------- Copy requirements and install --------------------
+# Copy and install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# -------------------- Copy app code --------------------
+# Copy application code
 COPY . .
 
-# -------------------- Environment variables --------------------
-ENV FLASK_APP=app.py
-ENV FLASK_RUN_HOST=0.0.0.0
-ENV FLASK_RUN_PORT=5000
-
-# -------------------- Expose Flask port --------------------
+# Expose port
 EXPOSE 5000
 
-# -------------------- Run Flask --------------------
-CMD ["flask", "run"]
+# Run the Flask app
+CMD ["python", "app.py"]
