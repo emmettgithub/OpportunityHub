@@ -1,11 +1,10 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 import pandas as pd
 import time
@@ -13,18 +12,21 @@ from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
+# ---------------- Selenium Scraper ----------------
 def scrape_fluke_portal(email, password):
-    chrome_options = Options()
-    chrome_options.add_argument("--headless=new")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--window-size=1920,1080")
-
     service = Service(ChromeDriverManager().install())
-    driver = webdriver.Chrome(service=service, options=chrome_options)
 
+    # --- Headless Chrome options ---
+    options = webdriver.ChromeOptions()
+    options.add_argument("--headless=new")  # headless mode
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--window-size=1920,1080")
+
+    driver = webdriver.Chrome(service=service, options=options)
     df = None
+
     try:
         driver.get("https://partnerportal.fluke.com/en/user/login")
         driver.find_element(By.NAME, "name").send_keys(email)
@@ -32,6 +34,7 @@ def scrape_fluke_portal(email, password):
         driver.find_element(By.NAME, "op").click()
         time.sleep(5)
 
+        # Navigate to Opportunities
         opp_menu = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.LINK_TEXT, "Opportunities"))
         )
@@ -44,17 +47,19 @@ def scrape_fluke_portal(email, password):
         rep_opp_item.click()
         time.sleep(5)
 
+        # Sort by Created On descending
         try:
             created_on_item = WebDriverWait(driver, 10).until(
                 EC.element_to_be_clickable((By.XPATH, "//a[contains(text(), 'Created On')]"))
             )
-            created_on_item.click()
+            created_on_item.click()  # ascending
             time.sleep(2)
-            created_on_item.click()
+            created_on_item.click()  # descending
             time.sleep(5)
         except TimeoutException:
             print("Created On column not found or not clickable.")
 
+        # Scrape table
         table = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.TAG_NAME, "table"))
         )
@@ -85,6 +90,8 @@ def scrape_fluke_portal(email, password):
 
     return df
 
+
+# ---------------- Flask Routes ----------------
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
