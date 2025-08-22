@@ -1,11 +1,11 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
-from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.options import Options
 import pandas as pd
 import time
 from datetime import datetime, timedelta
@@ -15,10 +15,21 @@ app = Flask(__name__)
 
 # ---------------- Selenium Scraper ----------------
 def scrape_fluke_portal(email, password):
-    service = Service(ChromeDriverManager().install())
-    driver = webdriver.Chrome(service=service)
-    df = None
+    # Chrome options for Docker/Render environment
+    options = Options()
+    options.binary_location = "/usr/bin/chromium"
+    options.add_argument("--headless")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--disable-software-rasterizer")
+    options.add_argument("--remote-debugging-port=9222")
 
+    # Use system-installed chromedriver
+    service = Service("/usr/bin/chromedriver")
+    driver = webdriver.Chrome(service=service, options=options)
+
+    df = None
     try:
         driver.get("https://partnerportal.fluke.com/en/user/login")
         driver.find_element(By.NAME, "name").send_keys(email)
