@@ -1,7 +1,7 @@
 # Base image
 FROM python:3.13-slim
 
-# Install Chromium and other necessary tools
+# Install Chromium and Chromedriver
 RUN apt-get update && apt-get install -y \
     chromium \
     chromium-driver \
@@ -10,8 +10,9 @@ RUN apt-get update && apt-get install -y \
     unzip \
     && rm -rf /var/lib/apt/lists/*
 
-# Set environment variable for headless Chrome
+# Set environment variables for Chromium
 ENV CHROME_BIN=/usr/bin/chromium
+ENV PATH="/usr/lib/chromium:$PATH"
 
 # Set working directory
 WORKDIR /app

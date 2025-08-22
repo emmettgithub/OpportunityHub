@@ -15,16 +15,7 @@ app = Flask(__name__)
 # ---------------- Selenium Scraper ----------------
 def scrape_fluke_portal(email, password):
     service = Service(ChromeDriverManager().install())
-
-    # --- Headless Chrome options ---
-    options = webdriver.ChromeOptions()
-    options.add_argument("--headless=new")  # headless mode
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--window-size=1920,1080")
-
-    driver = webdriver.Chrome(service=service, options=options)
+    driver = webdriver.Chrome(service=service)
     df = None
 
     try:
@@ -89,7 +80,6 @@ def scrape_fluke_portal(email, password):
         driver.quit()
 
     return df
-
 
 # ---------------- Flask Routes ----------------
 @app.route("/", methods=["GET", "POST"])
