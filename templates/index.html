@@ -5,14 +5,32 @@
     <meta charset="utf-8">
     <title>Opportunity Hub AI</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        #processingMessage {
+            display: none;
+            text-align: center;
+            margin-top: 15px;
+            font-weight: bold;
+            color: #0d6efd;
+            /* Bootstrap primary color */
+        }
+
+        #resultContainer {
+            margin-top: 20px;
+        }
+    </style>
 </head>
 
 <body class="p-5">
     <h1>⚡ Opportunity Hub AI</h1>
-    {% if warning %}
-    <div class="alert alert-warning">{{ warning }}</div>
-    {% endif %}
-    <form method="POST">
+
+    <div id="warningContainer">
+        {% if warning %}
+        <div class="alert alert-warning">{{ warning }}</div>
+        {% endif %}
+    </div>
+
+    <form id="scrapeForm" method="POST" onsubmit="showProcessingMessage()">
         <div class="mb-3">
             <label>Email</label>
             <input type="email" class="form-control" name="email" required>
@@ -22,7 +40,24 @@
             <input type="password" class="form-control" name="password" required>
         </div>
         <button type="submit" class="btn btn-primary">Scrape Opportunities Table</button>
+
+        <!-- Processing message below the button -->
+        <div id="processingMessage">
+            Processing your request, please wait...
+        </div>
     </form>
+
+    <!-- Container for results -->
+    <div id="resultContainer"></div>
+
+    <script>
+        function showProcessingMessage() {
+            const message = document.getElementById('processingMessage');
+            message.style.display = 'block';
+            // returning true allows the form to submit normally
+            return true;
+        }
+    </script>
 </body>
 
 </html>
