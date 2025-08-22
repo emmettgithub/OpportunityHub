@@ -31,13 +31,14 @@ def scrape_fluke_portal(email, password):
 
     df = None
     try:
+        # Step 1 : Loggin in
         driver.get("https://partnerportal.fluke.com/en/user/login")
         driver.find_element(By.NAME, "name").send_keys(email)
         driver.find_element(By.NAME, "pass").send_keys(password)
         driver.find_element(By.NAME, "op").click()
         time.sleep(5)
 
-        # Navigate to Opportunities
+        # Step 2 : Navigate to Opportunities
         opp_menu = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.LINK_TEXT, "Opportunities"))
         )
@@ -50,7 +51,7 @@ def scrape_fluke_portal(email, password):
         rep_opp_item.click()
         time.sleep(5)
 
-        # Sort by Created On descending
+        # Step 3 :Sort by Created On descending
         try:
             created_on_item = WebDriverWait(driver, 10).until(
                 EC.element_to_be_clickable((By.XPATH, "//a[contains(text(), 'Created On')]"))
@@ -62,7 +63,7 @@ def scrape_fluke_portal(email, password):
         except TimeoutException:
             print("Created On column not found or not clickable.")
 
-        # Scrape table
+        # Step 4 : Scrape table
         table = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.TAG_NAME, "table"))
         )
@@ -70,6 +71,7 @@ def scrape_fluke_portal(email, password):
         rows = table_body.find_elements(By.TAG_NAME, "tr")
         headers = [th.text.strip() for th in table.find_elements(By.TAG_NAME, "th")]
 
+        # Step 5 : Get Data
         data = []
         for row in rows:
             cells = row.find_elements(By.TAG_NAME, "td")
@@ -85,6 +87,13 @@ def scrape_fluke_portal(email, password):
                 data.append(row_data)
 
         df = pd.DataFrame(data, columns=headers if headers else None)
+
+        # Stages
+        # Stage 1 - Confirm Qualification (show those 14 days from created)
+        # Stage 2 - Identify & Accept Needs (show those 29 days from created)
+        # Stage 3 - Presenting & Accepting Value Solution (show those 89 days from created)
+        # Stage 4 - Confirm Specific Price & Budget (show those 149 days from created)
+        # Stage 5 - Place Order
 
     except Exception as e:
         print(f"Error during automation: {e}")
